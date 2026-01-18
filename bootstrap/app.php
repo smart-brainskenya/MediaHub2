@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Foundation\Exceptions\RegisterErrorViewPaths;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 // Determine environment using raw PHP to avoid container calls during bootstrap
@@ -21,19 +22,22 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) use ($isProduction): void {
         $exceptions->render(function (Throwable $e) use ($isProduction) {
             if ($isProduction) {
-                return response('Server Error', 500);
+                // Return a raw Symfony response to avoid resolving the Laravel ResponseFactory or View services
+                return new Response(
+                    'Server Error',
+                    500,
+                    ['Content-Type' => 'text/plain']
+                );
             }
         });
     })->create();
 
-if ($isProduction) {
-    $app->bind(RegisterErrorViewPaths::class, function () {
-        return new class {
-            public function __invoke() {
-                // Intentionally empty — disables error view registration
-            }
-        };
-    });
-}
+// Neutralize RegisterErrorViewPaths during bootstrap to prevent early View service resolution
+$app->resolving(RegisterErrorViewPaths::class, function ($service) use ($isProduction) {
+    if ($isProduction) {
+        // Prevent Laravel from attempting to load error Blade views
+        $service->paths = [];
+    }
+});
 
 return $app;
