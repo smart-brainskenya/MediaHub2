@@ -3,10 +3,7 @@
 namespace App\Services;
 
 use App\Models\MediaAsset;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Http\File;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -28,26 +25,9 @@ class MediaImportService
      */
     public function importFromUrl(string $url, string $name, string $type, ?int $categoryId = null): MediaAsset
     {
-        $tempPath = tempnam(sys_get_temp_dir(), 'media_hub_import_');
-
         try {
-            // 1. Download the file
-            $response = Http::timeout(120)->sink($tempPath)->get($url);
-
-            if ($response->failed()) {
-                throw new Exception("Failed to download media from URL: {$url}");
-            }
-
-            $file = new File($tempPath);
-            $mimeType = $file->getMimeType();
-
-            // Validation
-            if (!Str::startsWith($mimeType, $type)) {
-                throw new Exception("Invalid file type: {$mimeType}. Expected {$type}.");
-            }
-
-            // 2. Upload to Publitio
-            $publitioResponse = $this->publitioService->uploadFile($tempPath, [
+            // 1. Upload to Publitio using Remote Upload (Import by Link)
+            $publitioResponse = $this->publitioService->importByLink($url, [
                 'title' => $name,
                 'public_id' => Str::slug($name) . '-' . time(),
             ]);
@@ -56,16 +36,17 @@ class MediaImportService
                 throw new Exception("Publitio upload failed: " . ($publitioResponse['message'] ?? 'Unknown error'));
             }
 
-            $filename = $publitioResponse['file']['filename'] . '.' . $publitioResponse['file']['extension'];
+            $filename = $publitioResponse['public_id'] . '.' . $publitioResponse['extension'];
             $canonicalUrl = $this->publitioService->getBrandedUrl($filename);
 
-            // 3. Create MediaAsset record
+            // 2. Create MediaAsset record
             return MediaAsset::create([
-                'publitio_id' => $publitioResponse['file']['id'],
+                'publitio_id' => $publitioResponse['id'],
                 'name' => $name,
                 'type' => $type,
-                'file_path' => $canonicalUrl, // Database stores only the canonical public URL
-                'mime_type' => $mimeType,
+                'file_path' => $canonicalUrl,
+                'thumbnail_url' => $publitioResponse['thumbnail_url'] ?? null,
+                'mime_type' => $type === 'image' ? 'image/' . $publitioResponse['extension'] : 'video/' . $publitioResponse['extension'], // Best guess from extension
                 'category_id' => $categoryId,
             ]);
 
@@ -75,10 +56,6 @@ class MediaImportService
                 'error' => $e->getMessage(),
             ]);
             throw $e;
-        } finally {
-            if (file_exists($tempPath)) {
-                @unlink($tempPath);
-            }
         }
     }
 }

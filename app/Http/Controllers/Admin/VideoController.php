@@ -64,6 +64,7 @@ class VideoController extends Controller
                 'description' => $request->input('description'),
                 'type' => 'video',
                 'file_path' => $canonicalUrl,
+                'thumbnail_url' => $publitioResponse['thumbnail_url'] ?? null,
                 'mime_type' => $file->getMimeType(),
                 'category_id' => $request->input('category_id'),
             ]);

@@ -30,13 +30,13 @@ class ImportController extends Controller
             'category_id' => ['nullable', 'exists:categories,id'],
         ]);
 
-        ImportMediaFromUrl::dispatch(
+        ImportMediaFromUrl::dispatchSync(
             $request->input('url'),
             $request->input('name'),
             $request->input('type'),
             $request->input('category_id')
         );
 
-        return redirect()->route('admin.dashboard')->with('success', 'Import started. The media will appear in the library shortly.');
+        return redirect()->route('admin.dashboard')->with('success', 'Import completed. The media is now available.');
     }
 }

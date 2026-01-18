@@ -99,6 +99,53 @@ class PublitioService
     }
 
     /**
+     * Create a folder in Publitio.
+     *
+     * @param string $name Name of the folder
+     * @param string|null $parentId Parent folder ID (optional)
+     * @return array
+     * @throws Exception
+     */
+    public function createFolder(string $name, ?string $parentId = null): array
+    {
+        $args = ['name' => $name];
+        if ($parentId) {
+            $args['parent_id'] = $parentId;
+        }
+
+        try {
+            $response = $this->client->call('/folders/create', 'POST', $args);
+        } catch (Exception $e) {
+            Log::error('Publitio SDK create folder exception', ['error' => $e->getMessage(), 'name' => $name]);
+            throw new Exception("Publitio create folder failed: " . $e->getMessage());
+        }
+
+        return $this->handleResponse($response, 'Create Folder');
+    }
+
+    /**
+     * Create a player in Publitio.
+     *
+     * @param string $name Name of the player
+     * @param array $options Additional player options (skin, ad_tag, etc.)
+     * @return array
+     * @throws Exception
+     */
+    public function createPlayer(string $name, array $options = []): array
+    {
+        $options['name'] = $name;
+
+        try {
+            $response = $this->client->call('/players/create', 'POST', $options);
+        } catch (Exception $e) {
+            Log::error('Publitio SDK create player exception', ['error' => $e->getMessage(), 'name' => $name]);
+            throw new Exception("Publitio create player failed: " . $e->getMessage());
+        }
+
+        return $this->handleResponse($response, 'Create Player');
+    }
+
+    /**
      * Construct the canonical branded URL for a Publitio file.
      *
      * @param string $filename The filename returned by Publitio.
@@ -135,6 +182,24 @@ class PublitioService
             ]);
             
             throw new Exception("Publitio {$actionName} failed ({$code}): {$errorMessage}");
+        }
+
+        // Standardize thumbnail URL
+        $thumbnailSource = null;
+        if (!empty($data['url_thumbnail'])) {
+            $thumbnailSource = $data['url_thumbnail'];
+        } elseif (!empty($data['url_poster'])) {
+            $thumbnailSource = $data['url_poster'];
+        } elseif (!empty($data['url_preview'])) {
+            $thumbnailSource = $data['url_preview'];
+        }
+
+        if ($thumbnailSource) {
+            // Ensure it uses the branded domain
+            $path = parse_url($thumbnailSource, PHP_URL_PATH);
+            $data['thumbnail_url'] = rtrim($this->brandedDomain, '/') . $path;
+        } else {
+            $data['thumbnail_url'] = null;
         }
 
         return $data;

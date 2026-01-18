@@ -43,9 +43,13 @@
                                 @forelse ($videos as $video)
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <div class="h-10 w-16 bg-slate-200 rounded flex items-center justify-center">
-                                                <svg class="w-6 h-6 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
-                                            </div>
+                                            @if($video->thumbnail_url)
+                                                <img src="{{ $video->thumbnail_url }}" alt="Thumbnail for {{ $video->name }}" class="h-10 w-16 object-cover rounded">
+                                            @else
+                                                <div class="h-10 w-16 bg-slate-200 rounded flex items-center justify-center">
+                                                    <svg class="w-6 h-6 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                                                </div>
+                                            @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $video->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

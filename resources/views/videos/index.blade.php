@@ -58,23 +58,27 @@
                         <a href="{{ route('videos.show', $video) }}" 
                            class="group bg-white rounded-[2rem] overflow-hidden shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-500 cursor-pointer border-2 border-transparent hover:border-brand-orange/20">
                             <div class="relative overflow-hidden bg-slate-900 aspect-video flex items-center justify-center">
-                                <!-- Video Placeholder with Play Icon -->
-                                <div class="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                                    <div class="relative">
-                                        <svg class="w-16 h-16 text-slate-500 group-hover:text-brand-sky transition-all duration-500 transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"></circle>
-                                        </svg>
+                                @if($video->thumbnail_url)
+                                    <img src="{{ $video->thumbnail_url }}" alt="{{ $video->name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                                @else
+                                    <!-- Video Placeholder with Play Icon -->
+                                    <div class="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+                                        <div class="relative">
+                                            <svg class="w-16 h-16 text-slate-500 group-hover:text-brand-sky transition-all duration-500 transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"></circle>
+                                            </svg>
+                                        </div>
                                     </div>
-                                </div>
+                                @endif
                                 @if($video->category)
-                                    <div class="absolute top-4 left-4">
+                                    <div class="absolute top-4 left-4 z-10">
                                         <span class="px-4 py-1.5 text-xs font-black text-white rounded-full shadow-lg" style="background-color: {{ $video->category->color ?? '#38B6FF' }}">
                                             {{ strtoupper($video->category->name) }}
                                         </span>
                                     </div>
                                 @endif
                                 <!-- Overlay on Hover -->
-                                <div class="absolute inset-0 bg-gradient-to-t from-brand-orange/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                                <div class="absolute inset-0 bg-gradient-to-t from-brand-orange/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center z-10">
                                     <div class="bg-white text-brand-orange rounded-full p-4 transform scale-75 group-hover:scale-100 transition-transform duration-500 shadow-xl">
                                         <svg class="w-10 h-10 ml-1" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M8 5v14l11-7z"></path>

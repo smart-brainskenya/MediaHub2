@@ -21,6 +21,7 @@ class MediaAsset extends Model
         'description',
         'type',
         'file_path',
+        'thumbnail_url',
         'mime_type',
         'category_id',
     ];
