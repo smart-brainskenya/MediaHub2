@@ -3,9 +3,10 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Foundation\Exceptions\RegisterErrorViewPaths;
 use Throwable;
 
-return Application::configure(basePath: dirname(__DIR__))
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
@@ -21,3 +22,12 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
     })->create();
+
+$app->resolving(RegisterErrorViewPaths::class, function ($service) {
+    if (app()->environment('production')) {
+        // Prevent Laravel from attempting to load error Blade views
+        $service->paths = [];
+    }
+});
+
+return $app;
