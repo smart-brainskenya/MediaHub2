@@ -3,7 +3,7 @@
   "framework": null,
   "buildCommand": "echo Skipping build",
   "installCommand": "echo Skipping install",
-  "outputDirectory": null,
+  "outputDirectory": "public",
   "functions": {
     "api/index.php": {
       "runtime": "vercel-php@0.9.0"
