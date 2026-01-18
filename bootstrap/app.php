@@ -10,16 +10,7 @@ use Throwable;
 // Determine environment using raw PHP to avoid container calls during bootstrap
 $isProduction = ($_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? 'production') === 'production';
 
-// In serverless production, use /tmp for bootstrap cache to avoid read-only filesystem errors
-$bootstrapCachePath = $isProduction 
-    ? ($_ENV['BOOTSTRAP_CACHE_PATH'] ?? '/tmp/bootstrap-cache') 
-    : dirname(__DIR__).'/bootstrap/cache';
-
-if ($isProduction && !is_dir($bootstrapCachePath)) {
-    mkdir($bootstrapCachePath, 0755, true);
-}
-
-// Ensure other writable /tmp paths exist if configured
+// Ensure writable /tmp paths exist if configured
 if ($isProduction) {
     if ($viewPath = ($_ENV['VIEW_COMPILED_PATH'] ?? null)) {
         if (!is_dir($viewPath)) mkdir($viewPath, 0755, true);
@@ -50,9 +41,6 @@ $app = Application::configure(basePath: dirname(__DIR__))
             }
         });
     })->create();
-
-// Set the bootstrap cache path explicitly
-$app->useBootstrapCachePath($bootstrapCachePath);
 
 // Neutralize RegisterErrorViewPaths during bootstrap to prevent early View service resolution
 $app->resolving(RegisterErrorViewPaths::class, function ($service) use ($isProduction) {
