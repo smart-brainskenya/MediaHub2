@@ -23,11 +23,14 @@ $app = Application::configure(basePath: dirname(__DIR__))
         });
     })->create();
 
-$app->resolving(RegisterErrorViewPaths::class, function ($service) {
-    if (app()->environment('production')) {
-        // Prevent Laravel from attempting to load error Blade views
-        $service->paths = [];
-    }
-});
+if ($app->environment('production')) {
+    $app->bind(RegisterErrorViewPaths::class, function () {
+        return new class {
+            public function __invoke() {
+                // Intentionally empty — disables error view registration
+            }
+        };
+    });
+}
 
 return $app;
