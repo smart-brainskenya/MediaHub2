@@ -10,6 +10,11 @@
     </style>
 </head>
 <body>
-    <video controls autoplay src="{{ Storage::disk('media_videos')->url($video->file_path) }}"></video>
+    @php
+        $videoUrl = str_starts_with($video->file_path, 'http') 
+            ? $video->file_path 
+            : \Illuminate\Support\Facades\Storage::disk('media_videos')->url($video->file_path);
+    @endphp
+    <video controls autoplay src="{{ $videoUrl }}"></video>
 </body>
 </html>

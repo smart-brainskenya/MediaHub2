@@ -5,18 +5,25 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMediaAssetRequest;
 use App\Models\MediaAsset;
+use App\Models\Category;
+use App\Services\PublitioService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Exception;
 
 class VideoController extends Controller
 {
+    public function __construct(
+        protected PublitioService $publitioService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $videos = MediaAsset::where('type', 'video')->latest()->get();
+        $videos = MediaAsset::where('type', 'video')->with('category')->latest()->get();
 
         return view('admin.videos.index', compact('videos'));
     }
@@ -26,7 +33,8 @@ class VideoController extends Controller
      */
     public function create()
     {
-        return view('admin.videos.create');
+        $categories = Category::all();
+        return view('admin.videos.create', compact('categories'));
     }
 
     /**
@@ -35,25 +43,35 @@ class VideoController extends Controller
     public function store(StoreMediaAssetRequest $request)
     {
         $file = $request->file('file');
-        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $extension = $file->getClientOriginalExtension();
 
-        // Generate a unique, URL-friendly filename
-        $slug = Str::slug($request->input('name', $originalName));
-        $fileName = $slug . '-' . time() . '.' . $extension;
+        try {
+            $publitioResponse = $this->publitioService->uploadFile($file->getRealPath(), [
+                'title' => $request->input('name'),
+                'public_id' => Str::slug($request->input('name')) . '-' . time(),
+            ]);
 
-        // Store the file
-        $path = $file->storeAs('', $fileName, 'media_videos');
+            if (!isset($publitioResponse['success']) || !$publitioResponse['success']) {
+                throw new Exception("Publitio upload failed: " . ($publitioResponse['message'] ?? 'Unknown error'));
+            }
 
-        // Create the database record
-        MediaAsset::create([
-            'name' => $request->input('name'),
-            'type' => 'video',
-            'file_path' => $path,
-            'mime_type' => $file->getMimeType(),
-        ]);
+            $filename = $publitioResponse['public_id'] . '.' . $publitioResponse['extension'];
+            $canonicalUrl = $this->publitioService->getBrandedUrl($filename);
 
-        return redirect()->route('admin.videos.index')->with('success', 'Video uploaded successfully.');
+            // Create the database record
+            MediaAsset::create([
+                'publitio_id' => $publitioResponse['id'],
+                'name' => $request->input('name'),
+                'description' => $request->input('description'),
+                'type' => 'video',
+                'file_path' => $canonicalUrl,
+                'mime_type' => $file->getMimeType(),
+                'category_id' => $request->input('category_id'),
+            ]);
+
+            return redirect()->route('admin.videos.index')->with('success', 'Video uploaded successfully to Publitio.');
+        } catch (Exception $e) {
+            return back()->withInput()->with('error', 'Upload failed: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -65,37 +83,28 @@ class VideoController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(MediaAsset $video)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, MediaAsset $video)
-    {
-        //
-    }
-
-    /**
      * Remove the specified resource from storage.
      */
     public function destroy(MediaAsset $video)
     {
-        // Ensure it's a video being deleted by this controller
         if ($video->type !== 'video') {
             return back()->with('error', 'Invalid asset type.');
         }
 
-        // Delete the file from storage
-        Storage::disk('media_videos')->delete($video->file_path);
+        try {
+            if ($video->publitio_id) {
+                $this->publitioService->deleteFile($video->publitio_id);
+            } else {
+                // Fallback for older local files
+                Storage::disk('media_videos')->delete($video->file_path);
+            }
 
-        // Delete the database record
-        $video->delete();
+            $video->delete();
 
-        return redirect()->route('admin.videos.index')->with('success', 'Video deleted successfully.');
+            return redirect()->route('admin.videos.index')->with('success', 'Video deleted successfully.');
+        } catch (Exception $e) {
+            $video->delete();
+            return redirect()->route('admin.videos.index')->with('success', 'Video record removed.');
+        }
     }
 }

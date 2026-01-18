@@ -534,4 +534,14 @@ The following suggestions are raised for consideration but are not required for 
 
 ---
 
+## 9. Related Documentation
+
+For more granular details on UI implementation, refer to:
+
+-   **`11_PAGE_UI_SPECIFICATIONS.md`**: Specific layouts for the Homepage, Gallery, and Admin Dashboard, including child-friendly design principles.
+-   **`12_UI_SCOPE_AND_CONSTRAINTS.md`**: Defines allowed vs. forbidden technologies (e.g., no React) and placeholder strategies.
+-   **`13_KNOWN_GAPS_AND_PLANNED_IMPROVEMENTS.md`**: Lists deferred features like Search, Import by Link, and generated video thumbnails to prevent false bug reports.
+
+---
+
 **End of UI Framework**

@@ -12,7 +12,6 @@ class StoreMediaAssetRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Authorization is handled by admin middleware, so we can return true here.
         return true;
     }
 
@@ -25,14 +24,16 @@ class StoreMediaAssetRequest extends FormRequest
     {
         $rules = [
             'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
             'type' => ['required', Rule::in(['image', 'video'])],
+            'category_id' => ['nullable', 'exists:categories,id'],
             'file' => ['required', 'file'],
         ];
 
         if ($this->input('type') === 'image') {
             $rules['file'] = array_merge($rules['file'], ['mimes:jpeg,png,jpg,gif,svg', 'max:10240']);
         } elseif ($this->input('type') === 'video') {
-            $rules['file'] = array_merge($rules['file'], ['mimes:mp4,webm', 'max:51200']);
+            $rules['file'] = array_merge($rules['file'], ['mimes:mp4,webm,mov,avi', 'max:512000']); // Increased video size for Publitio
         }
 
         return $rules;

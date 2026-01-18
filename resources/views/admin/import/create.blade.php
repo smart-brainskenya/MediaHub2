@@ -30,6 +30,20 @@
                             @enderror
                         </div>
 
+                        <!-- Category -->
+                        <div class="mt-4">
+                            <label for="category_id" class="block font-medium text-sm text-gray-700">{{ __('Category') }}</label>
+                            <select id="category_id" name="category_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <option value="">{{ __('Select Category (Optional)') }}</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('category_id')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <!-- Type -->
                         <div class="mt-4">
                             <label for="type" class="block font-medium text-sm text-gray-700">{{ __('Media Type') }}</label>

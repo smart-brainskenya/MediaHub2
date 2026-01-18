@@ -5,18 +5,25 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMediaAssetRequest;
 use App\Models\MediaAsset;
+use App\Models\Category;
+use App\Services\PublitioService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Exception;
 
 class ImageController extends Controller
 {
+    public function __construct(
+        protected PublitioService $publitioService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $images = MediaAsset::where('type', 'image')->latest()->get();
+        $images = MediaAsset::where('type', 'image')->with('category')->latest()->get();
 
         return view('admin.images.index', compact('images'));
     }
@@ -26,7 +33,8 @@ class ImageController extends Controller
      */
     public function create()
     {
-        return view('admin.images.create');
+        $categories = Category::all();
+        return view('admin.images.create', compact('categories'));
     }
 
     /**
@@ -35,25 +43,35 @@ class ImageController extends Controller
     public function store(StoreMediaAssetRequest $request)
     {
         $file = $request->file('file');
-        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
 
-        // Generate a unique, URL-friendly filename
-        $slug = Str::slug($request->input('name', $originalName));
-        $extension = $file->getClientOriginalExtension();
-        $fileName = $slug . '-' . time() . '.' . $extension;
+        try {
+            $publitioResponse = $this->publitioService->uploadFile($file->getRealPath(), [
+                'title' => $request->input('name'),
+                'public_id' => Str::slug($request->input('name')) . '-' . time(),
+            ]);
 
-        // Store the file directly using Laravel's filesystem
-        $path = $file->storeAs('', $fileName, 'media_images');
+            if (!isset($publitioResponse['success']) || !$publitioResponse['success']) {
+                throw new Exception("Publitio upload failed: " . ($publitioResponse['message'] ?? 'Unknown error'));
+            }
 
-        // Create the database record
-        MediaAsset::create([
-            'name' => $request->input('name'),
-            'type' => 'image',
-            'file_path' => $path,
-            'mime_type' => $file->getMimeType(),
-        ]);
+            $filename = $publitioResponse['public_id'] . '.' . $publitioResponse['extension'];
+            $canonicalUrl = $this->publitioService->getBrandedUrl($filename);
 
-        return redirect()->route('admin.images.index')->with('success', 'Image uploaded successfully.');
+            // Create the database record
+            MediaAsset::create([
+                'publitio_id' => $publitioResponse['id'],
+                'name' => $request->input('name'),
+                'description' => $request->input('description'),
+                'type' => 'image',
+                'file_path' => $canonicalUrl,
+                'mime_type' => $file->getMimeType(),
+                'category_id' => $request->input('category_id'),
+            ]);
+
+            return redirect()->route('admin.images.index')->with('success', 'Image uploaded successfully to Publitio.');
+        } catch (Exception $e) {
+            return back()->withInput()->with('error', 'Upload failed: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -65,37 +83,29 @@ class ImageController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(MediaAsset $image)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, MediaAsset $image)
-    {
-        //
-    }
-
-    /**
      * Remove the specified resource from storage.
      */
     public function destroy(MediaAsset $image)
     {
-        // Ensure it's an image being deleted by this controller
         if ($image->type !== 'image') {
             return back()->with('error', 'Invalid asset type.');
         }
 
-        // Delete the file from storage
-        Storage::disk('media_images')->delete($image->file_path);
+        try {
+            if ($image->publitio_id) {
+                $this->publitioService->deleteFile($image->publitio_id);
+            } else {
+                // Fallback for older local files if they still exist
+                Storage::disk('media_images')->delete($image->file_path);
+            }
 
-        // Delete the database record
-        $image->delete();
+            $image->delete();
 
-        return redirect()->route('admin.images.index')->with('success', 'Image deleted successfully.');
+            return redirect()->route('admin.images.index')->with('success', 'Image deleted successfully.');
+        } catch (Exception $e) {
+            // Delete record anyway if it's already gone from Publitio or if we want to force it
+            $image->delete();
+            return redirect()->route('admin.images.index')->with('success', 'Image record removed (Publitio deletion may have failed or was already done).');
+        }
     }
 }

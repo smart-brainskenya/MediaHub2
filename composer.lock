@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9a0a542bbb8faa273deddc7f118949bb",
+    "content-hash": "f0bd605553c74905b041b56b85de3db6",
     "packages": [
         {
             "name": "brick/math",
@@ -3235,6 +3235,41 @@
                 "source": "https://github.com/bobthecow/psysh/tree/v0.12.18"
             },
             "time": "2025-12-17T14:35:46+00:00"
+        },
+        {
+            "name": "publitio/publitio",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ob1y2k/publitio_php_sdk.git",
+                "reference": "59f17c232788dc91845a49a6e158d032e10cf2fa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ob1y2k/publitio_php_sdk/zipball/59f17c232788dc91845a49a6e158d032e10cf2fa",
+                "reference": "59f17c232788dc91845a49a6e158d032e10cf2fa",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.0.1"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Publitio\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "description": "PHP language interface for the Publitio RESTful API",
+            "keywords": [
+                "publitio"
+            ],
+            "support": {
+                "issues": "https://github.com/ob1y2k/publitio_php_sdk/issues",
+                "source": "https://github.com/ob1y2k/publitio_php_sdk/tree/master"
+            },
+            "time": "2021-11-24T10:45:18+00:00"
         },
         {
             "name": "ralouphie/getallheaders",
@@ -8567,7 +8602,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "publitio/publitio": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

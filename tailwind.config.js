@@ -14,6 +14,18 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                brand: {
+                    blue: '#0954B8',
+                    sky: '#38B6FF',
+                    yellow: '#FFBD59',
+                    orange: '#FF914D',
+                }
+            },
+            backgroundImage: {
+                'gradient-ocean': 'linear-gradient(to bottom right, #38B6FF, #0954B8)',
+                'gradient-sunset': 'linear-gradient(to bottom right, #FFBD59, #FF914D)',
+            },
         },
     },
 

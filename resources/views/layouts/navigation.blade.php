@@ -21,6 +21,9 @@
                     <x-nav-link :href="route('admin.images.index')" :active="request()->routeIs('admin.images.*')">
                         {{ __('Image Management') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')">
+                        {{ __('Categories') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -81,6 +84,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('admin.images.index')" :active="request()->routeIs('admin.images.*')">
                 {{ __('Image Management') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')">
+                {{ __('Categories') }}
             </x-responsive-nav-link>
         </div>
 

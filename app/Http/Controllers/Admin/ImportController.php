@@ -14,7 +14,8 @@ class ImportController extends Controller
      */
     public function create()
     {
-        return view('admin.import.create');
+        $categories = \App\Models\Category::all();
+        return view('admin.import.create', compact('categories'));
     }
 
     /**
@@ -26,12 +27,14 @@ class ImportController extends Controller
             'url' => ['required', 'url'],
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::in(['image', 'video'])],
+            'category_id' => ['nullable', 'exists:categories,id'],
         ]);
 
         ImportMediaFromUrl::dispatch(
             $request->input('url'),
             $request->input('name'),
-            $request->input('type')
+            $request->input('type'),
+            $request->input('category_id')
         );
 
         return redirect()->route('admin.dashboard')->with('success', 'Import started. The media will appear in the library shortly.');

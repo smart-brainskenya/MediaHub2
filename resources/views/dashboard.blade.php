@@ -12,13 +12,13 @@
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <h3 class="text-lg font-medium text-gray-500">Total Media Assets</h3>
-                        <p class="mt-1 text-3xl font-semibold text-gray-900">{{ $totalAssets }}</p>
+                        <p class="mt-1 text-3xl font-semibold text-brand-blue">{{ $totalAssets }}</p>
                     </div>
                 </div>
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <h3 class="text-lg font-medium text-gray-500">Total Storage Used</h3>
-                        <p class="mt-1 text-3xl font-semibold text-gray-900">{{ $totalStorageUsed }}</p>
+                        <p class="mt-1 text-3xl font-semibold text-brand-blue">{{ $totalStorageUsed }}</p>
                     </div>
                 </div>
             </div>

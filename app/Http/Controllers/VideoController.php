@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\MediaAsset;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class VideoController extends Controller
@@ -10,10 +11,31 @@ class VideoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $videos = MediaAsset::where('type', 'video')->latest()->get();
-        return view('videos.index', compact('videos'));
+        $query = MediaAsset::where('type', 'video')->latest();
+
+        if ($request->filled('category')) {
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('slug', $request->category);
+            });
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('category', function ($cq) use ($search) {
+                      $cq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $videos = $query->paginate(12)->withQueryString();
+        $categories = Category::all();
+
+        return view('videos.index', compact('videos', 'categories'));
     }
 
     /**

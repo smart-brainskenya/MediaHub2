@@ -23,6 +23,29 @@
                             @enderror
                         </div>
 
+                        <!-- Category -->
+                        <div class="mt-4">
+                            <label for="category_id" class="block font-medium text-sm text-gray-700">{{ __('Category') }}</label>
+                            <select id="category_id" name="category_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <option value="">{{ __('Select Category (Optional)') }}</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('category_id')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mt-4">
+                            <label for="description" class="block font-medium text-sm text-gray-700">{{ __('Description') }}</label>
+                            <textarea id="description" name="description" class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" rows="3">{{ old('description') }}</textarea>
+                            @error('description')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <!-- File -->
                         <div class="mt-4">
                             <label for="file" class="block font-medium text-sm text-gray-700">{{ __('Video File (MP4, WebM)') }}</label>

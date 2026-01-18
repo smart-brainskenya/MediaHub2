@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\VideoController as AdminVideoController;
 use App\Http\Controllers\Admin\ImageController as AdminImageController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\ImageController;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('videos', AdminVideoController::class)->except(['edit', 'update']);
     Route::resource('images', AdminImageController::class)->except(['edit', 'update']);
+    Route::resource('categories', CategoryController::class);
     Route::get('import', [ImportController::class, 'create'])->name('import.create');
     Route::post('import', [ImportController::class, 'store'])->name('import.store');
 });
